@@ -1,0 +1,348 @@
+import pygame, numpy
+import random
+d = 0
+x = 1
+y = 1
+z = 1
+def rand():
+ global x
+ global y
+ global z
+ randomlist = []
+ for i in range(1,255):
+  x = random.randint(1,255) 
+ randomlist.append(x) 
+ randomlist = []
+ for i in range(1,255):
+  y = random.randint(1,255) 
+ randomlist.append(y)
+ randomlist = []
+ for i in range(1,255):
+  z = random.randint(1,255) 
+ randomlist.append(z)
+rand()
+
+BACKGROUND = (x, y, z)
+WIDTH = 610
+HEIGHT = 520
+SPRITES = pygame.sprite.Group()
+
+class Sprite(pygame.sprite.Sprite):
+    
+    def __init__(self1, image, startx, starty):
+        super().__init__()
+        self1.image = pygame.image.load(image)
+        self1.rect = self1.image.get_rect()
+        global rect1
+        
+        rect1 = self1
+        
+        self1.rect.center = [startx, starty]
+        
+    def update(self):
+        pass
+       
+        #tag = False
+        #global tag
+        #tag = pygame.sprite.rectcollide(self, SPRITES, False)
+        hit_by = pygame.sprite.spritecollide( self, SPRITES, False )
+        hit_by.remove(self)
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
+
+
+class Player(Sprite):
+    def __init__(self, startx, starty):
+        super().__init__("p1_front.png", startx, starty)
+        self.stand_image = self.image
+        self.jump_image = pygame.image.load("p1_jump.png")
+
+        self.walk_cycle = [
+            pygame.image.load(f"p1_walk{i:0>2}.png") for i in range(1, 12)
+        ]
+        self.animation_index = 0
+        self.facing_left = False
+
+        self.speed = 3
+        self.jumpspeed = 10
+        self.vsp = 0
+        self.gravity = .5
+        self.min_jumpspeed = 4
+        self.prev_key = pygame.key.get_pressed()
+
+    def walk_animation(self):
+        self.image = self.walk_cycle[self.animation_index]
+        if self.facing_left:
+            self.image = pygame.transform.flip(self.image, True, False)
+
+        if self.animation_index < len(self.walk_cycle) - 1:
+            self.animation_index += 1
+        else:
+            self.animation_index = 0
+
+    def jump_animation(self):
+        self.image = self.jump_image
+        if self.facing_left:
+            self.image = pygame.transform.flip(self.image, True, False)
+    
+    def update(self, boxes):
+        hsp = 0
+        onground = self.check_collision(0, 1, boxes)
+        # check keys
+        key = pygame.key.get_pressed()
+        if key[pygame.K_LEFT]:
+            self.facing_left = True
+            self.walk_animation()
+            hsp = -self.speed
+        elif key[pygame.K_RIGHT]:
+            self.facing_left = False
+            self.walk_animation()
+            hsp = self.speed
+        else:
+            self.image = self.stand_image
+
+        if key[pygame.K_UP] and onground:
+            self.vsp = -self.jumpspeed
+
+        # variable height jumping
+        if self.prev_key[pygame.K_UP] and not key[pygame.K_UP]:
+            if self.vsp < -self.min_jumpspeed:
+                self.vsp = -self.min_jumpspeed
+
+        self.prev_key = key
+
+ 
+        if self.vsp < 10 and not onground:  
+            self.jump_animation()
+            self.vsp += self.gravity
+
+        if onground and self.vsp > 0:
+            self.vsp = 0
+
+        # movement
+        self.move(hsp, self.vsp, boxes)
+
+    def move(self, x, y, boxes):
+        dx = x
+        dy = y
+
+        while self.check_collision(0, dy, boxes):
+            dy -= numpy.sign(dy)
+
+        while self.check_collision(dx, dy, boxes):
+            dx -= numpy.sign(dx)
+
+        self.rect.move_ip([dx, dy])
+   
+    def check_collision(self, x, y, grounds):
+        self.rect.move_ip([x, y])
+        collide = pygame.sprite.spritecollideany(self, grounds)
+        self.rect.move_ip([-x, -y])
+        return collide
+
+
+
+class Sprite2(pygame.sprite.Sprite):
+    def __init__(self2, image, startx, starty):
+        super().__init__()
+        self2.image = pygame.image.load(image)
+        self2.rect = self2.image.get_rect()
+        global rect2
+       
+        rect2 = self2
+      
+        self2.rect.center = [startx, starty]
+        
+        
+    def update(self2):
+        pass
+        hit_by = pygame.sprite.spritecollide( self2, SPRITES, False )
+        hit_by.remove(self2)
+    def draw(self2, screen):
+        screen.blit(self2.image, self2.rect)
+
+
+
+
+
+class Player2(Sprite2):
+    def __init__(self, startx, starty):
+        super().__init__("p1_front.png", startx, starty)
+        self.stand_image = self.image
+        self.jump_image = pygame.image.load("p1_jump.png")
+
+        self.walk_cycle = [
+            pygame.image.load(f"p1_walk{i:0>2}.png") for i in range(1, 12)
+        ]
+        self.animation_index = 0
+        self.facing_left = False
+
+        self.speed = 3
+        self.jumpspeed = 10
+        self.vsp = 0
+        self.gravity = .5
+        self.min_jumpspeed = 4
+        self.prev_key = pygame.key.get_pressed()
+
+    def walk_animation(self):
+        self.image = self.walk_cycle[self.animation_index]
+        if self.facing_left:
+            self.image = pygame.transform.flip(self.image, True, False)
+
+        if self.animation_index < len(self.walk_cycle) - 1:
+            self.animation_index += 1
+        else:
+            self.animation_index = 0
+
+    def jump_animation(self):
+        self.image = self.jump_image
+        if self.facing_left:
+            self.image = pygame.transform.flip(self.image, True, False)
+
+    def update(self, boxes):
+        hsp = 0
+        onground = self.check_collision(0, 1, boxes)
+        # check keys
+        key = pygame.key.get_pressed()
+        if key[ord('a')]:
+            self.facing_left = True
+            self.walk_animation()
+            hsp = -self.speed
+        elif key[ord('d')]:
+            self.facing_left = False
+            self.walk_animation()
+            hsp = self.speed
+        else:
+            self.image = self.stand_image
+
+        if key[ord('w')] and onground:
+            self.vsp = -self.jumpspeed
+            rand()
+            
+
+        if self.prev_key[pygame.K_UP] and not key[pygame.K_UP]:
+            if self.vsp < -self.min_jumpspeed:
+                self.vsp = -self.min_jumpspeed
+
+        self.prev_key = key
+
+        
+        if self.vsp < 10 and not onground:
+            self.jump_animation()
+            self.vsp += self.gravity
+
+        if onground and self.vsp > 0:
+            self.vsp = 0
+
+        
+        self.move(hsp, self.vsp, boxes)
+
+    def move(self, x, y, boxes):
+        dx = x
+        dy = y
+
+        while self.check_collision(0, dy, boxes):
+            dy -= numpy.sign(dy)
+
+        while self.check_collision(dx, dy, boxes):
+            dx -= numpy.sign(dx)
+
+        self.rect.move_ip([dx, dy])
+
+    def check_collision(self, x, y, grounds):
+        self.rect.move_ip([x, y])
+        collide = pygame.sprite.spritecollideany(self, grounds)
+        self.rect.move_ip([-x, -y])
+        return collide
+
+
+class Box(Sprite):
+    def __init__(self, startx, starty):
+        super().__init__("boxAlt.png", startx, starty)
+
+
+class Collide(pygame.sprite.Sprite):
+    def __init__(self2, self1, image, startx, starty):
+        global d
+        d == '0'
+        super().__init__()
+        self1.rect = self1.image.get_rect()
+        self2.rect = self2.image.get_rect()
+        if pygame.rect.colliderect(self2.rect, self1.rect) == True:
+          d == '1'
+
+def main():
+    pygame.init()
+    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    clock = pygame.time.Clock()
+    player = Player(180, 450)
+    player2 = Player2(300, 450)
+    boxes = pygame.sprite.Group()
+    m = 550
+    g = 110
+    boxes.add(Box(229, 200+g))
+    boxes.add(Box(40, 345+g))
+    boxes.add(Box(200, 245+g))
+    boxes.add(Box(10, 145+g))
+    boxes.add(Box(230, 120+g))
+    boxes.add(Box(310, 180+g))
+    boxes.add(Box(415, 360+g))
+    boxes.add(Box(500, 270+g))
+    boxes.add(Box(549, 190+g))
+    boxes.add(Box(390, g))
+    boxes.add(Box(550, 90+g))
+    boxes.add(Box(229, 53))
+    boxes.add(Box(25, m))
+    boxes.add(Box(100, m))
+    boxes.add(Box(150, m))
+    boxes.add(Box(200, m))
+    boxes.add(Box(250, m))
+    boxes.add(Box(300, m))
+    boxes.add(Box(350, m))
+    boxes.add(Box(400, m))
+    boxes.add(Box(450, m))
+    boxes.add(Box(525, m))
+    boxes.add(Box(600, m))
+    l = -40
+    g = 650
+    boxes.add(Box(l, 1))
+    boxes.add(Box(l, 100))
+    boxes.add(Box(l, 200))
+    boxes.add(Box(l, 300))
+    boxes.add(Box(l, 400))
+    boxes.add(Box(g, 1))
+    boxes.add(Box(g, 100))
+    boxes.add(Box(g, 200))
+    boxes.add(Box(g, 300))
+    boxes.add(Box(g, 400))
+    boxes.add(Box(g, 500))
+   
+  
+  
+    while True:
+      
+        pygame.event.pump()
+        #player.colliderect(Sprite)
+        player.update(boxes)
+        player2.update(boxes)
+       # collide.update(rect)
+        #print (d)
+        #if (tag == True):
+          #print('tagged')
+        #if (rect1 == rect2):
+          #print ('tagged')
+        #print(rect1, rect2)
+        screen.fill(BACKGROUND)
+        player.draw(screen)
+        player2.draw(screen)
+        boxes.draw(screen)
+        pygame.display.flip()
+
+        clock.tick(60)
+
+      
+
+
+if __name__ == "__main__":
+    main()
+   
